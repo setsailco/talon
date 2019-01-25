@@ -264,3 +264,4 @@ def _check_block_signature(msg_body):
                 found_email = True
     
     return None
+    
