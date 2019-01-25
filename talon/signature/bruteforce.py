@@ -235,14 +235,23 @@ def _check_block_signature(msg_body):
             # Too long line, not a signature
             return None
         
-        if lines[i].strip() == '':
+        trimmed_line = lines[i]
+        if trimmed_line.strip() == '' or (
+            (not found_content) and trimmed_line[0] == '[' and trimmed_line[-1] == ']'):
+            # The bracket check is to support email programs that convert images to something like:
+            #   [image:blahblah.jpg]
+            # We want to treat those as blank lines as some people have them at the bottom of their
+            # email as the last thing there (for example, a company logo)
+
             if not found_content:
                 # Haven't hit any text yet, so keep continuing
                 continue
             else:
+                # OK found a block of text at the end.
+                # Time to determine if it's a signature or not.
                 if found_phone or found_email:
                     # It's a signature
-                    return delimiter.join(lines[(i + 1):len(lines)])
+                    return delimiter.join(lines[i:len(lines)])
                 else:
                     # It's not a signature
                     return None

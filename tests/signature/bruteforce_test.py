@@ -120,12 +120,13 @@ No Phone
 
 Bob Smith
 Chief Email Officer
+Way
 Too
 Many
 Lines
 555-5555
 '''
-    eq_(('Wow. Awesome!\n\nBob Smith\nChief Email Officer\nToo\nMany\nLines\n555-5555', None),
+    eq_(('Wow. Awesome!\n\nBob Smith\nChief Email Officer\nWay\nToo\nMany\nLines\n555-5555', None),
         bruteforce.extract_signature(msg_body))
 
     msg_body = '''Wow. Awesome!
@@ -145,6 +146,29 @@ Bob Smith
 Chief Email Officer
 '''
     eq_(('Wow. Awesome!\n\nBob Smith\n555-5555\n\nChief Email Officer', None),
+        bruteforce.extract_signature(msg_body))
+
+
+def test_block_signatures_with_images():
+    msg_body = '''Wow. Awesome!
+
+Bob Smith
+Chief Email Officer
+555-5555
+[image:logo.png]
+'''
+    eq_(('Wow. Awesome!', 'Bob Smith\nChief Email Officer\n555-5555\n[image:logo.png]'),
+        bruteforce.extract_signature(msg_body))
+
+    msg_body = '''Wow. Awesome!
+
+Bob Smith
+Chief Email Officer
+555-5555
+
+[image:logo.png]
+'''
+    eq_(('Wow. Awesome!', 'Bob Smith\nChief Email Officer\n555-5555\n\n[image:logo.png]'),
         bruteforce.extract_signature(msg_body))
 
 
