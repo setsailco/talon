@@ -235,8 +235,8 @@ def _check_block_signature(msg_body):
             # Too long line, not a signature
             return None
         
-        trimmed_line = lines[i]
-        if trimmed_line.strip() == '' or (
+        trimmed_line = lines[i].strip()
+        if trimmed_line == '' or (
             (not found_content) and trimmed_line[0] == '[' and trimmed_line[-1] == ']'):
             # The bracket check is to support email programs that convert images to something like:
             #   [image:blahblah.jpg]
@@ -264,4 +264,3 @@ def _check_block_signature(msg_body):
                 found_email = True
     
     return None
-    
