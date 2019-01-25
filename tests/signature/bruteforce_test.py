@@ -171,6 +171,17 @@ Chief Email Officer
     eq_(('Wow. Awesome!', 'Bob Smith\nChief Email Officer\n555-5555\n\n[image:logo.png]'),
         bruteforce.extract_signature(msg_body))
 
+    msg_body = '''Wow. Awesome!
+   
+Bob Smith
+Chief Email Officer
+555-5555
+       
+   [image:logo.png]     
+'''
+    eq_(('Wow. Awesome!', 'Bob Smith\nChief Email Officer\n555-5555\n       \n   [image:logo.png]'),
+        bruteforce.extract_signature(msg_body))
+
 
 def test_signature_words():
     msg_body = '''Hey!
