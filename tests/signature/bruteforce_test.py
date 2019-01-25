@@ -128,6 +128,24 @@ Lines
     eq_(('Wow. Awesome!\n\nBob Smith\nChief Email Officer\nToo\nMany\nLines\n555-5555', None),
         bruteforce.extract_signature(msg_body))
 
+    msg_body = '''Wow. Awesome!
+
+Bob Smith
+555-5555
+Chief Email Officer
+'''
+    eq_(('Wow. Awesome!', 'Bob Smith\n555-5555\nChief Email Officer'),
+        bruteforce.extract_signature(msg_body))
+
+    msg_body = '''Wow. Awesome!
+
+Bob Smith
+555-5555
+
+Chief Email Officer
+'''
+    eq_(('Wow. Awesome!\n\nBob Smith\n555-5555\n\nChief Email Officer', None),
+        bruteforce.extract_signature(msg_body))
 
 
 def test_signature_words():
