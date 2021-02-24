@@ -22,7 +22,7 @@ RE_SIGNATURE = regex.compile(rf'''
                        |
                        ^[\s]*—+[\s]*$
                        |
-                       ^thanks\s?sa-z]*[\s,!]*$
+                       ^thanks\s?[a-z]*[\s,!]*$
                        |
                        ^regards\s?[a-z]*[\s,!]*$
                        |
