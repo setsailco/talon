@@ -1,4 +1,5 @@
 # [ch2370] Fork Talon and improve signature removal.
+# [ch14047] improve talon signature extraction
 from __future__ import absolute_import
 
 import logging
@@ -12,30 +13,46 @@ from talon.utils import get_delimiter
 log = logging.getLogger(__name__)
 
 # regex to fetch signature based on common signature words
-RE_SIGNATURE = regex.compile(r'''
+ENG_GER_CHARS_SPACES = '[a-z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00df\s]'
+
+
+RE_SIGNATURE = regex.compile(rf'''
                (
                    (?:
                        ^[\s]*--*[\s]*[a-z \.]*$
                        |
                        ^[\s]*—+[\s]*$
                        |
-                       ^thanks[\s,!]*$
+                       ^thanks\s?[a-z]*[\s,!]*$
                        |
-                       ^regards[\s,!]*$
+                       ^regards\s?[a-z]*[\s,!]*$
                        |
-                       ^kind\sregards[\s,!]*$
+                       ^kind\sregards[\sa-z]*[\s,!]*$
                        |
-                       ^take\scare[\s,!]*$
+                       ^take\scare\s?[a-z]*[\s,!]*$
                        |
-                       ^cheers[\s,!]*$
+                       ^cheers\s?[a-z]*[\s,!]*$
                        |
                        ^sincerely[\s,!]*$
                        |
                        ^best[ a-z]*[\s,!]*$
+                       |
+                       ^ihre?[\s,!]*$
+                       |
+                       ^deine?[\s,!]*$
+                       |
+                       ^{ENG_GER_CHARS_SPACES}*grüße{ENG_GER_CHARS_SPACES}*[\s,!]*$
+                       |
+                       ^vielen?\sdank[\s,!]*$
+                       |
+                       die\sbesten\swünsche[\s,!]*$
+                       |
+                       ^danke{ENG_GER_CHARS_SPACES}*[\s,!]*$
                    )
                    .*
                )
                ''', regex.I | regex.X | regex.M | regex.S)
+
 
 # signatures appended by phone email clients
 RE_PHONE_SIGNATURE = regex.compile(r'''
