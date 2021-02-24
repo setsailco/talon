@@ -12,7 +12,6 @@ from talon.utils import get_delimiter
 log = logging.getLogger(__name__)
 
 # regex to fetch signature based on common signature words
-ENG_GER_CHARS = '[a-z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00df]'
 ENG_GER_CHARS_SPACES = '[a-z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00df\s]'
 
 
@@ -41,21 +40,13 @@ RE_SIGNATURE = regex.compile(rf'''
                        |
                        ^deine?[\s,!]*$
                        |
-                       ^mit\s{ENG_GER_CHARS_SPACES}*\s?grüßen{ENG_GER_CHARS_SPACES}*[\s,!]*$
-                       |
-                       ^{ENG_GER_CHARS}*\sgrüße{ENG_GER_CHARS_SPACES}*[\s,!]$
-                       |
-                       ^{ENG_GER_CHARS_SPACES}*viele\s(?:liebe\s?)?grüße{ENG_GER_CHARS_SPACES}*[\s,!]$
-                       |
-                       ^vielen?{ENG_GER_CHARS_SPACES}*\sgrüße{ENG_GER_CHARS_SPACES}*[\s,!]$
+                       ^{ENG_GER_CHARS_SPACES}*grüße{ENG_GER_CHARS_SPACES}*[\s,!]*$
                        |
                        ^vielen?\sdank[\s,!]*$
                        |
                        die\sbesten\swünsche[\s,!]*$
                        |
                        ^danke{ENG_GER_CHARS_SPACES}*[\s,!]*$
-                       |
-                       ^grüße{ENG_GER_CHARS_SPACES}*[\s,!]*$
                    )
                    .*
                )
