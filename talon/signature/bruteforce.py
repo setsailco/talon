@@ -22,15 +22,15 @@ RE_SIGNATURE = regex.compile(rf'''
                        |
                        ^[\s]*—+[\s]*$
                        |
-                       ^thanks[\sa-z]*[\s,!]*$
+                       ^thanks\s?sa-z]*[\s,!]*$
                        |
-                       ^regards[\sa-z]*[\s,!]*$
+                       ^regards\s?[a-z]*[\s,!]*$
                        |
                        ^kind\sregards[\sa-z]*[\s,!]*$
                        |
-                       ^take\scare[\sa-z]*[\s,!]*$
+                       ^take\scare\s?[a-z]*[\s,!]*$
                        |
-                       ^cheers[\sa-z]*[\s,!]*$
+                       ^cheers\s?[a-z]*[\s,!]*$
                        |
                        ^sincerely[\s,!]*$
                        |
