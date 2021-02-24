@@ -1,4 +1,4 @@
-# [ch2370] Fork Talon and improve signature removal.
+# [ch14047] improve talon signature extraction
 from __future__ import absolute_import
 
 import logging
