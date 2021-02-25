@@ -159,9 +159,9 @@ def get_signature_candidate(lines):
         return []
 
     # we don't expect signature to start at the 1st line
-    candidate = non_empty[1:]
+    candidate = [i for i in non_empty if i > 0]
     # signature shouldn't be longer then SIGNATURE_MAX_LINES
-    candidate = candidate[-SIGNATURE_MAX_LINES:]
+    candidate = [i for i in candidate if (len(non_empty)-i <= SIGNATURE_MAX_LINES)]
 
     markers = _mark_candidate_indexes(lines, candidate)
     candidate = _process_marked_candidate_indexes(candidate, markers)
@@ -188,7 +188,6 @@ def _mark_candidate_indexes(lines, candidate):
     """
     # at first consider everything to be potential signature lines
     markers = list('c' * len(candidate))
-
     # mark lines starting from bottom up
     for i, line_idx in reversed(list(enumerate(candidate))):
         if len(lines[line_idx].strip()) > TOO_LONG_SIGNATURE_LINE:
@@ -197,7 +196,6 @@ def _mark_candidate_indexes(lines, candidate):
             line = lines[line_idx].strip()
             if line.startswith('-') and line.strip("-"):
                 markers[i] = 'd'
-
     return "".join(markers)
 
 
@@ -209,5 +207,5 @@ def _process_marked_candidate_indexes(candidate, markers):
     >>> _process_marked_candidate_indexes([9, 12, 14, 15, 17], 'clddc')
     [15, 17]
     """
-    match = RE_SIGNATURE_CANDIDATE.match(markers[::-1])
-    return candidate[-match.end('candidate'):] if match else []
+    match = RE_SIGNATURE_CANDIDATE.search(markers)
+    return candidate[match.start('candidate'):] if match else []
