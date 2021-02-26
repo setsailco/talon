@@ -23,11 +23,11 @@ RE_SIGNATURE = regex.compile(rf'''
                        |
                        ^[\s]*—+[\s]*$
                        |
-                       ^thanks\s?[a-z]*[\s,!]*$
+                       ^thanks?\s?(?:you?\s*)?[a-z]*[\s,!]*$
                        |
                        ^regards\s?[a-z]*[\s,!]*$
                        |
-                       ^kind\sregards[\sa-z]*[\s,!]*$
+                       ^(?:with?\s*)?kind\sregards[\sa-z]*[\s,!]*$
                        |
                        ^take\scare\s?[a-z]*[\s,!]*$
                        |
@@ -48,6 +48,10 @@ RE_SIGNATURE = regex.compile(rf'''
                        die\sbesten\swünsche[\s,!]*$
                        |
                        ^danke{ENG_GER_CHARS_SPACES}*[\s,!]*$
+                       |
+                       ^[a-z\s]+\ ?\/\ ?mit\ freundlichen\ grüßen[\n,!]+$
+                       |
+                       ^mit\ freundlichen\ grüßen\ ?\/\ ?[a-z\s]+[\n,!]+$
                    )
                    .*
                )
@@ -160,8 +164,6 @@ def get_signature_candidate(lines):
 
     # we don't expect signature to start at the 1st line
     candidate = [i for i in non_empty if i > 0]
-    # signature shouldn't be longer then SIGNATURE_MAX_LINES
-    candidate = [i for i in candidate if (len(non_empty)-i <= SIGNATURE_MAX_LINES)]
 
     markers = _mark_candidate_indexes(lines, candidate)
     candidate = _process_marked_candidate_indexes(candidate, markers)
@@ -208,4 +210,4 @@ def _process_marked_candidate_indexes(candidate, markers):
     [15, 17]
     """
     match = RE_SIGNATURE_CANDIDATE.search(markers)
-    return candidate[match.start('candidate'):] if match else []
+    return candidate[match.start('candidate'):match.end('candidate')+1] if match else []
