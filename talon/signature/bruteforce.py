@@ -23,11 +23,11 @@ RE_SIGNATURE = regex.compile(rf'''
                        |
                        ^[\s]*—+[\s]*$
                        |
-                       ^thanks\s?[a-z]*[\s,!]*$
+                       ^thanks?\s?(?:you?\s*)?[a-z]*[\s,!]*$
                        |
                        ^regards\s?[a-z]*[\s,!]*$
                        |
-                       ^kind\sregards[\sa-z]*[\s,!]*$
+                       ^(?:with?\s*)?kind\sregards[\sa-z]*[\s,!]*$
                        |
                        ^take\scare\s?[a-z]*[\s,!]*$
                        |
@@ -48,6 +48,10 @@ RE_SIGNATURE = regex.compile(rf'''
                        die\sbesten\swünsche[\s,!]*$
                        |
                        ^danke{ENG_GER_CHARS_SPACES}*[\s,!]*$
+                       |
+                       ^[a-z\s]+\ ?\/\ ?mit\ freundlichen\ grüßen[\n,!]+$
+                       |
+                       ^mit\ freundlichen\ grüßen\ ?\/\ ?[a-z\s]+[\n,!]+$
                    )
                    .*
                )
@@ -159,9 +163,7 @@ def get_signature_candidate(lines):
         return []
 
     # we don't expect signature to start at the 1st line
-    candidate = non_empty[1:]
-    # signature shouldn't be longer then SIGNATURE_MAX_LINES
-    candidate = candidate[-SIGNATURE_MAX_LINES:]
+    candidate = [i for i in non_empty if i > 0]
 
     markers = _mark_candidate_indexes(lines, candidate)
     candidate = _process_marked_candidate_indexes(candidate, markers)
@@ -188,7 +190,6 @@ def _mark_candidate_indexes(lines, candidate):
     """
     # at first consider everything to be potential signature lines
     markers = list('c' * len(candidate))
-
     # mark lines starting from bottom up
     for i, line_idx in reversed(list(enumerate(candidate))):
         if len(lines[line_idx].strip()) > TOO_LONG_SIGNATURE_LINE:
@@ -197,7 +198,6 @@ def _mark_candidate_indexes(lines, candidate):
             line = lines[line_idx].strip()
             if line.startswith('-') and line.strip("-"):
                 markers[i] = 'd'
-
     return "".join(markers)
 
 
@@ -209,5 +209,5 @@ def _process_marked_candidate_indexes(candidate, markers):
     >>> _process_marked_candidate_indexes([9, 12, 14, 15, 17], 'clddc')
     [15, 17]
     """
-    match = RE_SIGNATURE_CANDIDATE.match(markers[::-1])
-    return candidate[-match.end('candidate'):] if match else []
+    match = RE_SIGNATURE_CANDIDATE.search(markers)
+    return candidate[match.start('candidate'):match.end('candidate')+1] if match else []
