@@ -388,7 +388,12 @@ def postprocess(msg_body):
 
 def extract_from_plain(msg_body):
     """Extracts a non quoted message from provided plain text."""
-    stripped_text = msg_body
+    lines = [
+        line for line
+        in msg_body.splitlines(True)[:MAX_LINES_COUNT]
+        if len(line) < 1000
+    ]
+    msg_body = ''.join(lines)
 
     delimiter = get_delimiter(msg_body)
     msg_body = preprocess(msg_body, delimiter)
