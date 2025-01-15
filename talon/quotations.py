@@ -21,8 +21,8 @@ import six
 
 log = logging.getLogger(__name__)
 
-
-RE_FWD = re.compile("^[-]+[ ]*Forwarded message[ ]*[-]+\s*$", re.I | re.M)
+# looks for any place in the line, not only if line starts and ends with it.
+RE_FWD = re.compile("[-]+[ ]*Forwarded message[ ]*[-]+\s*", re.I | re.M)
 
 RE_ON_DATE_SMB_WROTE = re.compile(
     u'(-*[>]?[ ]?({0})[ ].*({1})(.*\n){{0,2}}.*({2}):?-*)'.format(
@@ -63,7 +63,7 @@ RE_ON_DATE_SMB_WROTE = re.compile(
             # Polish
             u'napisał',
             # Dutch
-            'schreef','verzond','geschreven',
+            'schreef','verzond','verzonden','geschreven',
             # German
             'schrieb',
             # Portuguese
@@ -139,16 +139,16 @@ RE_ORIGINAL_MESSAGE = re.compile(u'[\s]*[-]+[ ]*({})[ ]*[-]+'.format(
         'Oprindelig meddelelse',
     ))), re.I)
 
-RE_FROM_COLON_OR_DATE_COLON = re.compile(u'((_+\r?\n)?[\s]*:?[*]?({})[\s]?:([^\n$]+\n){{1,2}}){{2,}}'.format(
+RE_FROM_COLON_OR_DATE_COLON = re.compile(u'((_+\r?\n)?[\s]*:?[*]?({})[\s]?:([^\n$]+){{1,2}}){{2,}}'.format(
     u'|'.join((
         # "From" in different languages.
         'From', 'Van', 'De', 'Von', 'Fra', u'Från',
         # "Date" in different languages.
-        'Date', '[S]ent', 'Datum', u'Envoyé', 'Skickat', 'Sendt', 'Gesendet',
+        'Date', '[S]ent', 'Datum', u'Envoyé', 'Skickat', 'Sendt', 'Gesendet', 'Enviado el',
         # "Subject" in different languages.
         'Subject', 'Betreff', 'Objet', 'Emne', u'Ämne',
         # "To" in different languages.
-        'To', 'An', 'Til', u'À', 'Till'
+        'To', 'An', 'Til', u'À', 'Till', 'Para', 'Aan',
     ))), re.I | re.M)
 
 # ---- John Smith wrote ----
@@ -388,14 +388,18 @@ def postprocess(msg_body):
 
 def extract_from_plain(msg_body):
     """Extracts a non quoted message from provided plain text."""
-    stripped_text = msg_body
-
     delimiter = get_delimiter(msg_body)
     msg_body = preprocess(msg_body, delimiter)
     # don't process too long messages
     lines = msg_body.splitlines()[:MAX_LINES_COUNT]
+
     markers = mark_message_lines(lines)
     lines = process_marked_lines(lines, markers)
+
+    # try additionally split by different regex patterns as well.
+    markers_regex_split = split_emails(msg_body)
+    markers_lines_regex_split = process_marked_lines(lines, markers_regex_split)
+    msg_body = delimiter.join(markers_lines_regex_split)
 
     # concatenate lines, change links back, strip and return
     msg_body = delimiter.join(lines)
@@ -548,22 +552,31 @@ def split_emails(msg):
     return markers
 
 
-def _mark_quoted_email_splitlines(markers, lines):
-    """
-    When there are headers indented with '>' characters, this method will
-    attempt to identify if the header is a splitline header. If it is, then we
-    mark it with 's' instead of leaving it as 'm' and return the new markers.
+def _mark_quoted_email_splitlines(markers: str, lines: list[str]) -> list[str]:
+    """Try to find signs of next email in the thread by regex patterns.
+
+    If found - mark it as separator (with 's' instead of leaving it as 'm')
+    and return the new markers.
     """
     # Create a list of markers to easily alter specific characters
     markerlist = list(markers)
+    max_index = len(lines) - 1
+
     for i, line in enumerate(lines):
-        if markerlist[i] != 'm':
-            continue
         for pattern in SPLITTER_PATTERNS:
+             # matching line by line won't work cause some regex are multiline,
+             # llike for "From", "CC", etc. So if match not found - we try to
+             # look for current and next line as well.
             matcher = re.search(pattern, line)
             if matcher:
                 markerlist[i] = 's'
-                break
+            elif pattern == RE_FROM_COLON_OR_DATE_COLON and i != max_index:
+                # such pattern expects two or more occurances on multiple lines
+                currr_and_next_line = f"{line}\n{lines[i+1]}"
+                matcher = re.search(pattern, currr_and_next_line)
+                if matcher:
+                    markerlist[i] = 's'
+                    markerlist[i+1] = 's'
 
     return "".join(markerlist)
 
