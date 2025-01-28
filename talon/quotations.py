@@ -386,7 +386,7 @@ def postprocess(msg_body):
     return re.sub(RE_NORMALIZED_LINK, r'<\1>', msg_body).strip()
 
 
-def extract_from_plain(msg_body):
+def extract_from_plain(msg_body: str) -> str:
     """Extracts a non quoted message from provided plain text."""
     delimiter = get_delimiter(msg_body)
     msg_body = preprocess(msg_body, delimiter)
@@ -396,15 +396,25 @@ def extract_from_plain(msg_body):
     markers = mark_message_lines(lines)
     lines = process_marked_lines(lines, markers)
 
-    # try additionally split by different regex patterns as well.
-    markers_regex_split = split_emails(msg_body)
-    markers_lines_regex_split = process_marked_lines(lines, markers_regex_split)
-    msg_body = delimiter.join(markers_lines_regex_split)
-
     # concatenate lines, change links back, strip and return
     msg_body = delimiter.join(lines)
     msg_body = postprocess(msg_body)
     return msg_body
+
+
+def extract_for_signature_from_plain(msg_body: str) -> str:
+    """Extracts most relevant info from last message with additonal logic."""
+    # first use generic extraction.
+    msg_body = extract_from_plain(msg_body)
+
+    # try additionally split by different regex patterns as well.
+    markers_regex_split = split_emails(msg_body)
+    lines = msg_body.splitlines()[:MAX_LINES_COUNT]
+    lines = process_marked_lines(lines, markers_regex_split)
+
+    # concatenate lines, change links back, strip and return
+    delimiter = get_delimiter(msg_body)
+    return postprocess(delimiter.join(lines))
 
 
 def extract_from_html(msg_body):
